@@ -1,12 +1,30 @@
-let tab;
-let currentPlayer = 1;
-let playerSign = ['X', 'O'];
-let numberOfPlayer = 2;
-function Run(){ 
-    document.getElementById('board').innerHTML = "";
-    let tableSize = document.getElementById("tableSize").value;
-    createNewButtonTable(tableSize);
-    createTable(tableSize);
+let board;
+let currentPlayer;
+let playerSign = [];
+let numberOfPlayer;
+let gameFinished;
+
+function Run(){
+    SetPlayers();
+    if(ValidInputCheck()){
+        let tableSize = document.getElementById("tableSizeTag").value;
+        gameFinished = false;
+        document.getElementById('board').innerHTML = "";
+        createNewButtonTable(tableSize);
+        createTable(tableSize);
+    }
+}
+function SetPlayers(){
+    currentPlayer = 0;
+    playerSign = [];
+    let Signs = document.getElementById("playerSignsTag").value;
+    let j = 0;
+    for (let i = 0; i < Signs.length; i++) {
+        if(Signs[i] != ' '){
+            playerSign[j++] = Signs[i];
+        }
+    }
+    numberOfPlayer = playerSign.length;
 }
 function createTable(tableSize){
     let gameTable = document.createElement("table");
@@ -27,48 +45,108 @@ function getNewRow(tableSize, rowNumber){
     return row;
 }
 function getNewButton(rowNumber, collumnNumber){
-    tab[rowNumber][collumnNumber] = document.createElement("button");
-    tab[rowNumber][collumnNumber].className = "BoardField";
-    tab[rowNumber][collumnNumber].addEventListener("click", ()=>{
-        tab[rowNumber][collumnNumber].innerText = rowNumber + " " + collumnNumber;
-
-        /*FieldHandler(rowNumber, collumnNumber);*/
+    board[rowNumber][collumnNumber] = document.createElement("button");
+    board[rowNumber][collumnNumber].className = "BoardField";
+    board[rowNumber][collumnNumber].innerText = "";
+    board[rowNumber][collumnNumber].addEventListener("click", ()=>{
+        FieldHandler(rowNumber, collumnNumber);
     });
-    return tab[rowNumber][collumnNumber];
+    return board[rowNumber][collumnNumber];
 }
 function createNewButtonTable(tableSize){
-    tab = [];
+    board = [];
     for (let i = 0; i < tableSize; i++) {
-        tab[i] = [];
+        board[i] = [];
     }
 }
-function FieldHandler(i, j){
-    if(tab[i, j].innerText != "s"){
-        alert("good")
-        return;
+function FieldHandler(rowNumber, collumnNumber){
+    if( gameFinished == false){
+        if(board[rowNumber][collumnNumber].innerText != ""){
+            return;
+        }
+        board[rowNumber][collumnNumber].innerText = playerSign[currentPlayer];
+        CheckWin();
+        currentPlayer++;
+        currentPlayer %= numberOfPlayer;
     }
-    tab[i, j].innerText = playerSign[currentPlayer];
-    
-    CheckWin();
 }
 function CheckWin(){
-    if(CheckRows())
-        alert(currentPlayer + "win");
+    if(CheckLines()){
+         gameFinished = true;
+        alert("Gracz " + playerSign[currentPlayer] + " Wygrywa");
+    }
 }
-function CheckRows(){
-    let win = true;
-    for (let row = 0; row < tab.length; row++) {
-        for(let collumn = 0; collumn < tab.length + 1; collumn++){
-            if(tab[row, collumn].innerText == tab[row, collumn + 1].innerText){
-                continue
-            }
-            else{
-                win = false;
-                break;
-            }
-        }
-        if(win)
-            return true;
+function CheckLines(){
+    for (let i = 0; i < board.length; i++) {
+       if(CheckRow(i)
+        || CheckCollumn(i)){
+        return true;
+       }
+    }
+
+    if(CheckHorizontalA() || CheckHorizontalB()){
+        return true;
     }
     return false;
+}
+function CheckRow(row){
+    if(board[row][0].innerText == "")
+        return false;
+    for(let collumn = 0; collumn < board.length - 1; collumn++){
+        if(board[row][collumn].innerText != board[row][collumn + 1].innerText){
+            return false;
+        }
+    }
+    return true;
+}
+function CheckCollumn(collumn){
+    if(board[0][collumn].innerText == "")
+        return false;
+    for(let row = 0; row < board.length - 1; row++){
+        if(board[row][collumn].innerText != board[row + 1][collumn].innerText){
+            return false;
+        }
+    }
+    return true;
+}
+function CheckHorizontalA(){
+    if(board[0][0].innerText != ""){
+        for (let i = 0; i < board.length - 1; i++) {
+            if(board[i][i].innerText != board[i+1][i+1].innerText){
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+function CheckHorizontalB(){
+    let length = board.length;
+    if(board[length-1][0].innerText != ""){
+        for (let i = 1; i < length; i++) {
+            if(board[length-i][i-1].innerText != board[length-1-i][i].innerText){
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+function ValidInputCheck(){
+    if(ValidTableSize() && ValidPlayersCheck())
+        return true;
+    else
+        return false;
+}
+function ValidTableSize(){
+    if(document.getElementById("tableSizeTag").value > 0)
+        return true;
+    else
+        return false;
+}
+function ValidPlayersCheck(){
+    if(numberOfPlayer > 0)
+        return true;
+    else
+        return false;
 }
