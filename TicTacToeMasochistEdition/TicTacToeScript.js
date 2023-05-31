@@ -1,152 +1,170 @@
 let board;
 let currentPlayer;
-let playerSign = [];
+let playersSign = [];
 let numberOfPlayer;
 let gameFinished;
+let gameRound;
 
 function Run(){
-    SetPlayers();
+    clearBoard();
     if(ValidInputCheck()){
-        let tableSize = document.getElementById("tableSizeTag").value;
+        setPlayers();
+        setBoard();
         gameFinished = false;
-        document.getElementById('board').innerHTML = "";
-        createNewButtonTable(tableSize);
-        createTable(tableSize);
+        gameRound = 0;
     }
 }
-function SetPlayers(){
+function clearBoard(){
+    document.getElementById('board').innerHTML = "";
+}
+function setBoard(){
+    let boardSize = document.getElementById("tableSizeTag").value;
+    createBoardTable(boardSize);
+    createBoardUI(boardSize);
+}
+function setPlayers(){
     currentPlayer = 0;
-    playerSign = [];
+    playersSign = [];
     let Signs = document.getElementById("playerSignsTag").value;
     let j = 0;
     for (let i = 0; i < Signs.length; i++) {
         if(Signs[i] != ' '){
-            playerSign[j++] = Signs[i];
+            playersSign[j++] = Signs[i];
         }
     }
-    numberOfPlayer = playerSign.length;
+    numberOfPlayer = playersSign.length;
 }
-function createTable(tableSize){
-    let gameTable = document.createElement("table");
-    document.getElementById("board").appendChild(gameTable);
-    fillTable(tableSize, gameTable);
+function createBoardUI(boardSize){
+    let boardUI = document.createElement("table");
+    document.getElementById("board").appendChild(boardUI);
+    fillTable(boardSize, boardUI);
 }
-function fillTable(tableSize, gameTable){
-    for (let rowNumber = 0; rowNumber < tableSize; rowNumber++) {
-        let row = getNewRow(tableSize, rowNumber);
-        gameTable.appendChild(row);
+function fillTable(boardSize, boardUI){
+    for (let rowNumber = 0; rowNumber < boardSize; rowNumber++) {
+        let row = getNewRow(boardSize, rowNumber);
+        boardUI.appendChild(row);
     }
 }
-function getNewRow(tableSize, rowNumber){
+function getNewRow(boardSize, rowNumber){
     let row = document.createElement("tr");
-    for (let collumnNumber = 0; collumnNumber < tableSize; collumnNumber++) {
-        row.appendChild(getNewButton(rowNumber, collumnNumber));
+    for (let collumnNumber = 0; collumnNumber < boardSize; collumnNumber++) {
+        row.appendChild(getNewField(rowNumber, collumnNumber));
     }
     return row;
 }
-function getNewButton(rowNumber, collumnNumber){
+function getNewField(rowNumber, collumnNumber){
     board[rowNumber][collumnNumber] = document.createElement("button");
     board[rowNumber][collumnNumber].className = "BoardField";
     board[rowNumber][collumnNumber].innerText = "";
     board[rowNumber][collumnNumber].addEventListener("click", ()=>{
-        FieldHandler(rowNumber, collumnNumber);
+        FieldEventHandler(rowNumber, collumnNumber);
     });
     return board[rowNumber][collumnNumber];
 }
-function createNewButtonTable(tableSize){
+function createBoardTable(boardSize){
     board = [];
-    for (let i = 0; i < tableSize; i++) {
+    for (let i = 0; i < boardSize; i++) {
         board[i] = [];
     }
 }
-function FieldHandler(rowNumber, collumnNumber){
-    if( gameFinished == false){
-        if(board[rowNumber][collumnNumber].innerText != ""){
-            return;
+function FieldEventHandler(rowNumber, collumnNumber){
+    let winningLine;
+    if(!gameFinished){
+        if(board[rowNumber][collumnNumber].innerText == ""){
+            gameRound++;
+            board[rowNumber][collumnNumber].innerText = playersSign[currentPlayer];
+            if(winningLine = CheckWin()){
+                WinCall(winningLine);
+            }
+            else if(CheckDraw()){
+                DrawCall();
+            }
+            currentPlayer++;
+            currentPlayer %= numberOfPlayer;
         }
-        board[rowNumber][collumnNumber].innerText = playerSign[currentPlayer];
-        CheckWin();
-        currentPlayer++;
-        currentPlayer %= numberOfPlayer;
     }
 }
-function CheckWin(){
-    if(CheckLines()){
-         gameFinished = true;
-        alert("Gracz " + playerSign[currentPlayer] + " Wygrywa");
+function DrawCall(){
+    alert("Remis");
+}
+function CheckDraw(){
+    return Math.pow(board.length, 2) == gameRound;
+}
+function WinCall(winningLine){
+    gameFinished = true;
+    MarkLine(winningLine);
+}
+function MarkLine(line){
+    for (let i = 0; i < line.length; i++) {
+        line[i].className = "BoardWinField";
     }
 }
-function CheckLines(){
-    for (let i = 0; i < board.length; i++) {
-       if(CheckRow(i)
-        || CheckCollumn(i)){
-        return true;
-       }
-    }
-
-    if(CheckHorizontalA() || CheckHorizontalB()){
-        return true;
+function CheckWin(){  
+    let winningLine;
+    if((winningLine = CheckRows())
+       || (winningLine = CheckCollumns())
+       || (winningLine = CheckHorizontal())){
+        return winningLine;
     }
     return false;
 }
-function CheckRow(row){
-    if(board[row][0].innerText == "")
-        return false;
-    for(let collumn = 0; collumn < board.length - 1; collumn++){
-        if(board[row][collumn].innerText != board[row][collumn + 1].innerText){
+function CheckLine(line){
+    for (let i = 0; i < line.length; i++) {
+        if(line[i].innerText != playersSign[currentPlayer]){
             return false;
         }
     }
-    return true;
+    return line;
 }
-function CheckCollumn(collumn){
-    if(board[0][collumn].innerText == "")
-        return false;
-    for(let row = 0; row < board.length - 1; row++){
-        if(board[row][collumn].innerText != board[row + 1][collumn].innerText){
-            return false;
+function CheckRows(){
+    let lineOfSigns;
+    for (let row = 0; row < board.length; row++) {
+        lineOfSigns = [];
+        for(let collumn = 0; collumn < board.length; collumn++){
+            lineOfSigns.push(board[row][collumn]);
         }
-    }
-    return true;
-}
-function CheckHorizontalA(){
-    if(board[0][0].innerText != ""){
-        for (let i = 0; i < board.length - 1; i++) {
-            if(board[i][i].innerText != board[i+1][i+1].innerText){
-                return false;
-            }
+        if(lineOfSigns = CheckLine(lineOfSigns)){
+            return lineOfSigns;
         }
-        return true;
     }
     return false;
 }
-function CheckHorizontalB(){
-    let length = board.length;
-    if(board[length-1][0].innerText != ""){
-        for (let i = 1; i < length; i++) {
-            if(board[length-i][i-1].innerText != board[length-1-i][i].innerText){
-                return false;
-            }
+function CheckCollumns(){
+    let lineOfSigns;
+    for (let collumn = 0; collumn < board.length; collumn++) {
+        lineOfSigns = [];
+        for(let row = 0; row < board.length; row++){
+            lineOfSigns.push(board[row][collumn]);
         }
-        return true;
+        if(lineOfSigns = CheckLine(lineOfSigns)){
+            return lineOfSigns;
+        }
+    }
+    return false;
+}
+function CheckHorizontal(){
+    let lineOfSignsY = [];
+    let lineOfSignsX = [];
+    let winningLine = [];
+    for (let i = 0; i < board.length; i++) {    
+        lineOfSignsY.push(board[i][i]);
+        lineOfSignsX.push(board[i][board.length-i-1]);
+    }
+    if((winningLine = CheckLine(lineOfSignsX)) 
+       ||(winningLine = CheckLine(lineOfSignsY))){
+        return winningLine;
     }
     return false;
 }
 function ValidInputCheck(){
-    if(ValidTableSize() && ValidPlayersCheck())
+    if(ValidTableSizeCheck() && ValidPlayersCheck())
         return true;
     else
         return false;
 }
-function ValidTableSize(){
-    if(document.getElementById("tableSizeTag").value > 0)
-        return true;
-    else
-        return false;
+function ValidTableSizeCheck(){
+    return document.getElementById("tableSizeTag").value > 0;
 }
 function ValidPlayersCheck(){
-    if(numberOfPlayer > 0)
-        return true;
-    else
-        return false;
+    return document.getElementById("playerSignsTag").value.length > 0;
 }
