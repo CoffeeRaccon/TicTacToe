@@ -1,7 +1,7 @@
 let board;
 let currentPlayer;
 let playersSign = [];
-let numberOfPlayer;
+let numberOfPlayers;
 let gameFinished;
 let gameRound;
 
@@ -32,7 +32,7 @@ function setPlayers(){
             playersSign[j++] = Signs[i];
         }
     }
-    numberOfPlayer = playersSign.length;
+    numberOfPlayers = playersSign.length;
 }
 function createBoardUI(boardSize){
     let boardUI = document.createElement("table");
@@ -80,7 +80,7 @@ function FieldEventHandler(rowNumber, collumnNumber){
                 DrawCall();
             }
             currentPlayer++;
-            currentPlayer %= numberOfPlayer;
+            currentPlayer %= numberOfPlayers;
         }
     }
 }
