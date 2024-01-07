@@ -1,0 +1,11 @@
+.BoardField, .BoardWinField{
+    height: 50px;
+    width: 50px;
+    float: left;
+}
+.BoardWinField{
+    background-color: chartreuse;
+}
+.BoardField{
+    background-color: lightgray;
+}
